@@ -1,0 +1,38 @@
+[
+  {
+    "file": "emitter_v1.0.0.wasm",
+    "source": "https://github.com/blend-capital/blend-contracts/releases/download/v1.0.0_emitter_v1.0.0.wasm/emitter_v1.0.0.wasm",
+    "sha256": "438a5528cff17ede6fe515f095c43c5f15727af17d006971485e52462e7e7b89",
+    "bytes": 10448
+  },
+  {
+    "file": "backstop_v2.0.0.wasm",
+    "source": "https://github.com/blend-capital/blend-contracts-v2/releases/download/v2.0.0_backstop_cli22.0.1/backstop_v2.0.0.wasm",
+    "sha256": "c1f4502a757e25c611f5a159bc1ab0eef64085adac6c68123dca66e87faffbc2",
+    "bytes": 30772
+  },
+  {
+    "file": "pool_v2.0.0.wasm",
+    "source": "https://github.com/blend-capital/blend-contracts-v2/releases/download/v2.0.0_pool_cli22.0.1/pool_v2.0.0.wasm",
+    "sha256": "a41fc53d6753b6c04eb15b021c55052366a4c8e0e21bc72700f461264ec1350e",
+    "bytes": 57328
+  },
+  {
+    "file": "pool_factory_v2.0.0.wasm",
+    "source": "https://github.com/blend-capital/blend-contracts-v2/releases/download/v2.0.0_pool-factory_cli22.0.1/pool-factory_v2.0.0.wasm",
+    "sha256": "31328050548831f63d2b72e37bcfd0bb7371b7907135755dbe09ed434d755ca9",
+    "bytes": 3230
+  },
+  {
+    "file": "comet_v1.0.0.wasm",
+    "source": "https://github.com/CometDEX/comet-contracts-v1/releases/download/v1.0.0_contracts_v1.0.0.wasm/contracts_v1.0.0.wasm",
+    "sha256": "8abc28913035c07411ed5d134e6bfeab4723d97ddd4d1a22a0605d35c94d1a36",
+    "bytes": 29046
+  },
+  {
+    "file": "comet_v1.1.0.wasm",
+    "source": "https://github.com/CometDEX/comet-contracts-v1/releases/download/v1.1.0_contracts_pkg1.0.0_cli25.1.0/contracts_v1.0.0.wasm",
+    "sha256": "d735c3395f59510172cf5cf838823a1389b97cfec6bf24e580e9bd77d2b3e687",
+    "bytes": 29024
+  }
+]
