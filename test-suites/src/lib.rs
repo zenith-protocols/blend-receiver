@@ -25,4 +25,8 @@ pub mod comet {
     pub const LEGACY_WASM: &[u8] = include_bytes!("../../wasm/comet_v1.0.0.wasm");
 }
 
+pub mod router {
+    soroban_sdk::contractimport!(file = "../wasm/stellar_router_v0.wasm");
+}
+
 pub mod test_fixture;
