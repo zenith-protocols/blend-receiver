@@ -37,9 +37,12 @@ After `acquire_backstop()`, wait the emitter's 31 days and call its public
 use the optional drop, forward BLND, and mint internal tokens to the intended
 successor. For the outgoing handover:
 
-1. SC calls `receiver.mint(successor, amount)`.
-2. Call the emitter's public `queue_swap_backstop(successor, successor_token)`
-   separately, then wait 31 days and call `swap_backstop()`.
+1. SC calls `receiver.mint(successor, amount)` and the emitter's
+   `queue_swap_backstop(successor, successor_token)` in one transaction,
+   through a batching contract such as Creit Tech's
+   [Stellar Router](https://github.com/Creit-Tech/Stellar-Router-Contract) v0,
+   `CBZV3HBP672BV7FF3ZILVT4CNPW3N5V2WTJ2LAGOAYW5R7L2D5SLUDFZ`.
+2. Wait 31 days and call `swap_backstop()`.
 3. SC calls `receiver.forward_emissions(v21_backstop)` to send the final BLND distribution
    to v2.1, then optionally calls `renounce_ownership()`.
 
