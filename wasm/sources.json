@@ -34,5 +34,11 @@
     "source": "https://github.com/CometDEX/comet-contracts-v1/releases/download/v1.1.0_contracts_pkg1.0.0_cli25.1.0/contracts_v1.0.0.wasm",
     "sha256": "d735c3395f59510172cf5cf838823a1389b97cfec6bf24e580e9bd77d2b3e687",
     "bytes": 29024
+  },
+  {
+    "file": "stellar_router_v0.wasm",
+    "source": "https://github.com/Creit-Tech/Stellar-Router-Contract/releases/download/main__contracts_router__stellar-router_pkg0.0.0_cli22.0.1/stellar-router_v0.0.0.wasm",
+    "sha256": "eef465aae42270559f8b6f6f8f80d8ae2566011ec28def520ece01890d6970a1",
+    "bytes": 856
   }
 ]

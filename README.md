@@ -76,12 +76,13 @@ suite exercises backstop migration and receiver behavior, not lending.
 
 The lifecycle test moves the emitter from v2 to the receiver, waits both
 31-day handover delays, refunds the legacy LP for SC to burn directly, drops
-50M BLND, forwards emissions, mints receiver tokens to enable the outgoing
-swap, and moves the emitter to v2.1 with its fresh LP. It checks final
+50M BLND, forwards emissions, mints receiver tokens and queues the outgoing
+swap in one router call, and moves the emitter to v2.1 with its fresh LP. It checks final
 forwarding, disabled mint/refund after handover, working v2.1 emissions and
 optional ownership renunciation. Other tests cover owner authorization,
 acquisition rollback, chosen forwarding destinations, ownership transfer,
-and default mint amount validation.
+default mint amount validation, cancelling a swap with a self mint, and the
+router batch's rollback.
 
 All WASMs are under `wasm/`. The receiver artifact is rebuilt locally and
 ignored; [wasm/sources.json](wasm/sources.json) pins official dependency

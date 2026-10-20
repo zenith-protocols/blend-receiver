@@ -1,14 +1,17 @@
 use soroban_sdk::{
     testutils::{Address as _, EnvTestConfig, Ledger, LedgerInfo, MockAuth, MockAuthInvoke},
-    token, vec, Address, BytesN, Env, IntoVal, String, Val, Vec,
+    token, vec, Address, BytesN, Env, IntoVal, String, Symbol, Val, Vec,
 };
 
-use crate::{backstop, comet, emitter, pool, pool_factory, receiver};
+use crate::{backstop, comet, emitter, pool, pool_factory, receiver, router};
 
 pub const SCALAR: i128 = 10_000_000;
 pub const DAY: u64 = 24 * 60 * 60;
 pub const SWAP_DELAY: u64 = 31 * DAY;
 pub const BACKSTOP_DEPOSIT: i128 = 30 * SCALAR;
+
+/// One router invocation: contract, function and arguments.
+pub type Call = (Address, Symbol, Vec<Val>);
 
 pub struct Stack<'a> {
     pub lp: comet::Client<'a>,
@@ -24,6 +27,7 @@ pub struct TestFixture<'a> {
     pub usdc: token::Client<'a>,
     pub emitter: emitter::Client<'a>,
     pub receiver: receiver::Client<'a>,
+    pub router: router::Client<'a>,
     pub v2: Stack<'a>,
     pub v21: Stack<'a>,
 }
@@ -80,9 +84,11 @@ impl TestFixture<'_> {
                 blnd.clone(),
             ),
         );
+        let router = env.register(router::WASM, ());
         env.mock_auths(&[]);
         TestFixture {
             receiver: receiver::Client::new(&env, &receiver),
+            router: router::Client::new(&env, &router),
             blnd: token::Client::new(&env, &blnd),
             usdc: token::Client::new(&env, &usdc),
             env,
@@ -107,6 +113,32 @@ impl TestFixture<'_> {
 
     pub fn owner_call(&self, function: &str, args: Vec<Val>) {
         self.authorize(&self.admin, &self.receiver.address, function, args);
+    }
+
+    pub fn call(&self, contract: &Address, function: &str, args: Vec<Val>) -> Call {
+        (contract.clone(), Symbol::new(&self.env, function), args)
+    }
+
+    /// SC authorizes `router.exec(SC, calls)` and each receiver mint the calls make.
+    pub fn authorize_batch(&self, calls: &Vec<Call>, mints: &[(&Address, i128)]) {
+        let mints: std::vec::Vec<MockAuthInvoke> = mints
+            .iter()
+            .map(|(to, amount)| MockAuthInvoke {
+                contract: &self.receiver.address,
+                fn_name: "mint",
+                args: (*to, *amount).into_val(&self.env),
+                sub_invokes: &[],
+            })
+            .collect();
+        self.env.mock_auths(&[MockAuth {
+            address: &self.admin,
+            invoke: &MockAuthInvoke {
+                contract: &self.router.address,
+                fn_name: "exec",
+                args: (&self.admin, calls.clone()).into_val(&self.env),
+                sub_invokes: &mints,
+            },
+        }]);
     }
 
     pub fn authorize_acquisition(&self) {

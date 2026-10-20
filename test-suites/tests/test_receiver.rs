@@ -1,6 +1,6 @@
 use soroban_sdk::{
     testutils::Address as _,
-    token,
+    token, vec,
     xdr::{ScErrorCode, ScErrorType},
     Address, Error, IntoVal, Vec,
 };
@@ -107,12 +107,22 @@ fn v2_to_receiver_to_v21() {
             .try_queue_swap_backstop(&f.v21.backstop.address, &f.v21.lp.address),
         Err(Ok(Error::from_contract_error(1100)))
     );
-    f.owner_call("mint", (&f.v21.backstop.address, SCALAR).into_val(&f.env));
-    f.receiver.mint(&f.v21.backstop.address, &SCALAR);
+    let handover = vec![
+        &f.env,
+        f.call(
+            &f.receiver.address,
+            "mint",
+            (&f.v21.backstop.address, SCALAR).into_val(&f.env),
+        ),
+        f.call(
+            &f.emitter.address,
+            "queue_swap_backstop",
+            (&f.v21.backstop.address, &f.v21.lp.address).into_val(&f.env),
+        ),
+    ];
+    f.authorize_batch(&handover, &[(&f.v21.backstop.address, SCALAR)]);
+    f.router.exec(&f.admin, &handover);
     assert_eq!(f.receiver.balance(&f.v21.backstop.address), SCALAR);
-    f.env.mock_auths(&[]);
-    f.emitter
-        .queue_swap_backstop(&f.v21.backstop.address, &f.v21.lp.address);
     let queued = f.emitter.get_queued_swap().unwrap();
     assert_eq!(queued.new_backstop, f.v21.backstop.address);
     assert_eq!(queued.new_backstop_token, f.v21.lp.address);
@@ -285,4 +295,66 @@ fn owner_mint_uses_default_amount_validation_and_supports_repeated_mints() {
     }
     assert_eq!(f.receiver.balance(to), SCALAR + 1);
     assert_eq!(f.receiver.total_supply(), SCALAR + 1);
+}
+
+#[test]
+fn self_mint_lets_anyone_cancel_a_swap() {
+    let f = TestFixture::create();
+    f.activate_receiver();
+    let successor = &f.v21.backstop.address;
+    let receiver = &f.receiver.address;
+    let handover = vec![
+        &f.env,
+        f.call(receiver, "mint", (successor, SCALAR).into_val(&f.env)),
+        f.call(
+            &f.emitter.address,
+            "queue_swap_backstop",
+            (successor, &f.v21.lp.address).into_val(&f.env),
+        ),
+    ];
+    f.authorize_batch(&handover, &[(successor, SCALAR)]);
+    f.router.exec(&f.admin, &handover);
+    f.env.mock_auths(&[]);
+    assert_eq!(
+        f.emitter.try_cancel_swap_backstop(),
+        Err(Ok(Error::from_contract_error(1105)))
+    );
+    f.owner_call("mint", (receiver, SCALAR).into_val(&f.env));
+    f.receiver.mint(receiver, &SCALAR);
+    assert_eq!(f.receiver.balance(receiver), SCALAR);
+    f.env.mock_auths(&[]);
+    f.emitter.cancel_swap_backstop();
+    assert_eq!(f.emitter.get_queued_swap(), None);
+    assert_eq!(
+        f.emitter
+            .try_queue_swap_backstop(successor, &f.v21.lp.address),
+        Err(Ok(Error::from_contract_error(1100)))
+    );
+}
+
+#[test]
+fn router_batch_rolls_back_the_mint_when_its_queue_fails() {
+    let f = TestFixture::create();
+    f.activate_receiver();
+    let successor = &f.v21.backstop.address;
+    let batch = vec![
+        &f.env,
+        f.call(
+            &f.receiver.address,
+            "mint",
+            (successor, SCALAR).into_val(&f.env),
+        ),
+        f.call(
+            &f.emitter.address,
+            "queue_swap_backstop",
+            (&Address::generate(&f.env), &f.v21.lp.address).into_val(&f.env),
+        ),
+    ];
+    f.authorize_batch(&batch, &[(successor, SCALAR)]);
+    assert_eq!(
+        f.router.try_exec(&f.admin, &batch).err(),
+        Some(Ok(Error::from_contract_error(1100)))
+    );
+    assert_eq!(f.receiver.balance(successor), 0);
+    assert_eq!(f.emitter.get_queued_swap(), None);
 }
